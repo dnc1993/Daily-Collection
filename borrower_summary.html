@@ -1,9 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Borrower Loan Summary</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Borrower Loan Summary</title>
+    <script>
+        // Borrower Authentication System
+        const BORROWER_PASSWORD = "borrower123"; // Change this to your desired password
+
+        // Check if user is authenticated as borrower
+        function checkBorrowerAuth() {
+            const isAuthenticated = sessionStorage.getItem('borrower_authenticated');
+            const authTime = sessionStorage.getItem('borrower_auth_time');
+            const currentTime = Date.now();
+
+            // Check if authentication is expired (30 minutes)
+            if (authTime && (currentTime - parseInt(authTime)) > 30 * 60 * 1000) {
+                sessionStorage.removeItem('borrower_authenticated');
+                sessionStorage.removeItem('borrower_auth_time');
+                return false;
+            }
+
+            return isAuthenticated === 'true';
+        }
+
+        // Show borrower login form
+        function showBorrowerLogin() {
+            const loginForm = document.createElement('div');
+            loginForm.innerHTML = `
+                <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+                    <div style="background: white; padding: 30px; border-radius: 10px; width: 90%; max-width: 400px; text-align: center;">
+                        <h2 style="color: #2c3e50; margin-bottom: 20px;">Borrower Access</h2>
+                        <p style="color: #666; margin-bottom: 20px;">Enter password to view your loan summary</p>
+                        <input type="password" id="borrower-password" placeholder="Enter password" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #ddd; border-radius: 5px; font-size: 16px;">
+                        <div id="login-error" style="color: #e74c3c; margin-bottom: 15px; display: none;"></div>
+                        <button onclick="authenticateBorrower()" style="background: #3498db; color: white; border: none; padding: 12px 30px; border-radius: 5px; font-size: 16px; cursor: pointer; width: 100%;">Access Loan Summary</button>
+                        <button onclick="goToMainSite()" style="background: #95a5a6; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 14px; cursor: pointer; margin-top: 10px;">Back to Main Site</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(loginForm);
+            const passwordInput = document.getElementById('borrower-password');
+            passwordInput.focus();
+            passwordInput.addEventListener('keypress', handlePasswordKeyPress);
+        }
+
+        // Authenticate borrower
+        function authenticateBorrower() {
+            const password = document.getElementById('borrower-password').value;
+            const errorDiv = document.getElementById('login-error');
+
+            if (password === BORROWER_PASSWORD) {
+                sessionStorage.setItem('borrower_authenticated', 'true');
+                sessionStorage.setItem('borrower_auth_time', Date.now().toString());
+                sessionStorage.setItem('user_role', 'borrower');
+                location.reload(); // Reload to show the main content
+            } else {
+                errorDiv.textContent = 'Incorrect password. Please try again.';
+                errorDiv.style.display = 'block';
+                document.getElementById('borrower-password').value = '';
+                document.getElementById('borrower-password').focus();
+            }
+        }
+
+        // Handle Enter key in password field
+        function handlePasswordKeyPress(event) {
+            if (event.key === 'Enter') {
+                authenticateBorrower();
+            }
+        }
+
+        // Redirect to main site
+        function goToMainSite() {
+            window.location.href = '/';
+        }
+
+        // Logout borrower
+        function logoutBorrower() {
+            sessionStorage.removeItem('borrower_authenticated');
+            sessionStorage.removeItem('borrower_auth_time');
+            sessionStorage.removeItem('user_role');
+            location.reload();
+        }
+
+        // Check authentication on page load
+        window.onload = function() {
+            if (!checkBorrowerAuth()) {
+                showBorrowerLogin();
+            } else {
+                showEnvironmentBanner();
+                // Add logout button to nav
+                const nav = document.querySelector('nav');
+                if (nav) {
+                    const logoutBtn = document.createElement('button');
+                    logoutBtn.textContent = 'Logout';
+                    logoutBtn.onclick = logoutBorrower;
+                    logoutBtn.style.cssText = 'background: #e74c3c; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-left: 15px;';
+                    nav.appendChild(logoutBtn);
+                }
+            }
+        };
+    </script>
 <style>
 body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f6f8; }
 nav { background-color: #2c3e50; padding: 12px 20px; text-align: center; }
@@ -502,10 +599,19 @@ function showEnvironmentBanner(){
     }
 }
 
-// Call on load
-window.onload = function(){
-    showEnvironmentBanner();
-};
+// Environment detection and banner display
+function showEnvironmentBanner(){
+    const hostname = window.location.hostname;
+    const banner = document.getElementById('env-banner');
+
+    // Show banner on staging/demo environments
+    if (hostname.includes('staging') || hostname.includes('preview') || hostname.includes('git-') || hostname.includes('vercel-preview') ||
+        (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'staging')) {
+        banner.style.display = 'block';
+    } else {
+        banner.style.display = 'none';
+    }
+}
 </script>
 </body>
 </html>
