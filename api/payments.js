@@ -1,7 +1,7 @@
 const { createClient } = require('@supabase/supabase-js')
+require('dotenv').config({ path: '../.env.staging' })
 
 // Database credentials from environment variables
-// Vercel automatically provides environment variables
 const SUPABASE_URL = process.env.SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY
 
