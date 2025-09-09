@@ -2,7 +2,7 @@
 
 // Password configuration for different access levels
 const ACCESS_PASSWORDS = {
-    borrower: "Borrower@2024",    // For borrower summary only (different password)
+    borrower: "ZooM@123",         // For borrower summary (same password as admin)
     dashboard: "ZooM@123",        // For dashboard access
     analysis: "ZooM@123",         // For analysis page
     weekly: "ZooM@123",           // For weekly payments

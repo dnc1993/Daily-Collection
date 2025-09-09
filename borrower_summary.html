@@ -11,6 +11,15 @@
             logoutLevel('borrower');
         }
 
+        // Go to home page without password (allowed for borrowers)
+        function goToHomePage() {
+            // Clear borrower authentication and redirect to home
+            sessionStorage.removeItem('borrower_authenticated');
+            sessionStorage.removeItem('borrower_auth_time');
+            sessionStorage.removeItem('user_role');
+            window.location.href = '/';
+        }
+
         // Logout button is now in the sidebar, no need to add it dynamically
         function addLogoutButton() {
             // The logout button is already in the sidebar HTML
@@ -93,9 +102,9 @@ body {
 }
 
 .logout-btn-small {
-    background: rgba(255,255,255,0.2);
+    background: rgba(231, 76, 60, 0.9);
     color: white;
-    border: 1px solid rgba(255,255,255,0.3);
+    border: 1px solid rgba(231, 76, 60, 0.5);
     padding: 8px 16px;
     border-radius: 5px;
     cursor: pointer;
@@ -104,7 +113,24 @@ body {
 }
 
 .logout-btn-small:hover {
-    background: rgba(255,255,255,0.3);
+    background: rgba(231, 76, 60, 1);
+    transform: translateY(-1px);
+}
+
+.home-btn-small {
+    background: rgba(52, 152, 219, 0.9);
+    color: white;
+    border: 1px solid rgba(52, 152, 219, 0.5);
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    margin-right: 10px;
+}
+
+.home-btn-small:hover {
+    background: rgba(52, 152, 219, 1);
     transform: translateY(-1px);
 }
 
@@ -203,6 +229,7 @@ button:hover { background-color: #2980b9; }
         <h1>👤 Borrower Loan Summary</h1>
     </div>
     <div class="borrower-actions">
+        <button class="home-btn-small" onclick="goToHomePage()">🏠 Home</button>
         <button class="logout-btn-small" onclick="logoutBorrower()">🚪 Logout</button>
     </div>
 </div>
