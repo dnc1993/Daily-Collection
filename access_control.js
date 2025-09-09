@@ -2,7 +2,7 @@
 
 // Password configuration for different access levels
 const ACCESS_PASSWORDS = {
-    borrower: "1234",             // For borrower summary only
+    borrower: "Borrower@2024",    // For borrower summary only (different password)
     dashboard: "ZooM@123",        // For dashboard access
     analysis: "ZooM@123",         // For analysis page
     weekly: "ZooM@123",           // For weekly payments
@@ -181,8 +181,38 @@ function goToHome() {
     window.location.href = '/';
 }
 
+// Enhanced protection for borrower users
+function enforceBorrowerRestrictions() {
+    const userRole = getUserRole();
+
+    // If user is authenticated as borrower, prevent access to other pages
+    if (userRole === 'borrower') {
+        const currentPath = window.location.pathname;
+
+        // Borrower can only access borrower_summary.html
+        if (!currentPath.includes('/borrower_summary.html')) {
+            // Clear borrower authentication and redirect
+            sessionStorage.removeItem('borrower_authenticated');
+            sessionStorage.removeItem('borrower_auth_time');
+            sessionStorage.removeItem('user_role');
+
+            // Show message and redirect
+            alert('Access denied. Borrower users can only access the Borrower Summary page.');
+            window.location.href = '/borrower_summary.html';
+            return false;
+        }
+    }
+
+    return true;
+}
+
 // Auto-redirect users who try to access restricted pages
 document.addEventListener('DOMContentLoaded', function() {
+    // First, enforce borrower restrictions
+    if (!enforceBorrowerRestrictions()) {
+        return; // Borrower was redirected, stop further processing
+    }
+
     const currentPath = window.location.pathname;
 
     // Define page access requirements
@@ -192,7 +222,8 @@ document.addEventListener('DOMContentLoaded', function() {
         '/newloan.html': ['newloan'],          // New Loan
         '/analysis.html': ['analysis'],        // Analysis
         '/weekly.html': ['weekly'],            // Weekly Payments
-        '/borrower_summary.html': ['borrower'] // Borrower Summary
+        '/borrower_summary.html': ['borrower'], // Borrower Summary
+        '/administrator.html': ['admin']       // Admin panel (requires JWT token)
     };
 
     // Check if current page requires specific access
@@ -200,8 +231,16 @@ document.addEventListener('DOMContentLoaded', function() {
         if (currentPath === page || currentPath.includes(page)) {
             const userRole = getUserRole();
             if (!allowedRoles.includes(userRole)) {
-                // Show authentication modal for the first allowed role
-                showAuthModal(allowedRoles[0]);
+                // Special handling for admin panel
+                if (page.includes('administrator.html')) {
+                    if (!isAdminAuthenticated()) {
+                        window.location.href = '/login.html';
+                        return;
+                    }
+                } else {
+                    // Show authentication modal for the first allowed role
+                    showAuthModal(allowedRoles[0]);
+                }
             }
             break;
         }
