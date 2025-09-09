@@ -2,11 +2,11 @@
 
 // Password configuration for different access levels
 const ACCESS_PASSWORDS = {
-    borrower: "borrower123",      // For borrower summary
-    analysis: "analysis456",      // For analysis page
-    weekly: "weekly789",          // For weekly payments
-    newloan: "loan101",           // For new loan page
-    admin: "admin999"             // For full admin access
+    borrower: "1234",             // For borrower summary only
+    dashboard: "ZooM@123",        // For dashboard access
+    analysis: "ZooM@123",         // For analysis page
+    weekly: "ZooM@123",           // For weekly payments
+    newloan: "ZooM@123"           // For new loan page
 };
 
 // Check authentication for specific access level
@@ -61,16 +61,17 @@ function isBorrowerAuthenticated() {
     return isAuthenticatedFor('borrower');
 }
 
-// Get user role (prioritizes admin over other authentications)
+// Get user role (checks all authentication levels)
 function getUserRole() {
-    if (isAdminAuthenticated()) return 'admin';
-
-    // Check for other authentications
+    // Check for authentications in order of priority
     for (const level of Object.keys(ACCESS_PASSWORDS)) {
         if (isAuthenticatedFor(level)) {
             return level;
         }
     }
+
+    // Check for admin authentication
+    if (isAdminAuthenticated()) return 'admin';
 
     return 'guest';
 }
@@ -81,14 +82,12 @@ function restrictAccess(allowedRoles = []) {
 
     if (!allowedRoles.includes(userRole)) {
         if (userRole === 'borrower') {
-            // Borrower trying to access admin page - redirect to borrower summary
+            // Borrower trying to access other pages - redirect to borrower summary
             window.location.href = '/borrower_summary.html';
-        } else if (userRole === 'admin') {
-            // Admin trying to access borrower page - redirect to dashboard
-            window.location.href = '/';
         } else {
-            // Guest user - redirect to login
-            window.location.href = '/login.html';
+            // Other users trying to access restricted pages - show auth modal
+            // This is handled by the DOMContentLoaded event listener
+            return false;
         }
         return false;
     }
@@ -100,9 +99,21 @@ function requireBorrowerAccess() {
     return restrictAccess(['borrower']);
 }
 
-// Admin-specific access control
-function requireAdminAccess() {
-    return restrictAccess(['admin']);
+// Specific access control functions
+function requireDashboardAccess() {
+    return restrictAccess(['dashboard']);
+}
+
+function requireAnalysisAccess() {
+    return restrictAccess(['analysis']);
+}
+
+function requireWeeklyAccess() {
+    return restrictAccess(['weekly']);
+}
+
+function requireNewLoanAccess() {
+    return restrictAccess(['newloan']);
 }
 
 // Logout specific authentication level
@@ -176,16 +187,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Define page access requirements
     const pageAccess = {
-        '/administrator.html': ['admin'],
-        '/newloan.html': ['admin', 'newloan'],
-        '/analysis.html': ['admin', 'analysis'],
-        '/weekly.html': ['admin', 'weekly'],
-        '/borrower_summary.html': ['borrower']
+        '/': ['dashboard'],                    // Dashboard
+        '/index.html': ['dashboard'],          // Dashboard
+        '/newloan.html': ['newloan'],          // New Loan
+        '/analysis.html': ['analysis'],        // Analysis
+        '/weekly.html': ['weekly'],            // Weekly Payments
+        '/borrower_summary.html': ['borrower'] // Borrower Summary
     };
 
     // Check if current page requires specific access
     for (const [page, allowedRoles] of Object.entries(pageAccess)) {
-        if (currentPath.includes(page)) {
+        if (currentPath === page || currentPath.includes(page)) {
             const userRole = getUserRole();
             if (!allowedRoles.includes(userRole)) {
                 // Show authentication modal for the first allowed role
