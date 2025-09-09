@@ -1,12 +1,12 @@
 // Enhanced Access Control System with Multiple Passwords
 
-// Password configuration for different access levels
+// Password configuration for different access levels (DISABLED)
 const ACCESS_PASSWORDS = {
-    borrower: "ZooM@123",         // For borrower summary (same password as admin)
-    dashboard: "ZooM@123",        // For dashboard access
-    analysis: "ZooM@123",         // For analysis page
-    weekly: "ZooM@123",           // For weekly payments
-    newloan: "ZooM@123"           // For new loan page
+    borrower: "",                 // No password required for borrower summary
+    dashboard: "",                // No password required for dashboard
+    analysis: "",                 // No password required for analysis page
+    weekly: "",                   // No password required for weekly payments
+    newloan: ""                   // No password required for new loan page
 };
 
 // Check authentication for specific access level
@@ -28,9 +28,23 @@ function isAuthenticatedFor(level) {
     return isAuthenticated === 'true';
 }
 
-// Authenticate with specific password
+// Authenticate with specific password (or no password if empty)
 function authenticateFor(level, password) {
-    if (password === ACCESS_PASSWORDS[level]) {
+    const requiredPassword = ACCESS_PASSWORDS[level];
+
+    // If no password is required, always authenticate
+    if (requiredPassword === "") {
+        const authKey = `${level}_authenticated`;
+        const timeKey = `${level}_auth_time`;
+
+        sessionStorage.setItem(authKey, 'true');
+        sessionStorage.setItem(timeKey, Date.now().toString());
+        sessionStorage.setItem('user_role', level);
+        return true;
+    }
+
+    // If password is required, check it
+    if (password === requiredPassword) {
         const authKey = `${level}_authenticated`;
         const timeKey = `${level}_auth_time`;
 
@@ -144,6 +158,16 @@ function logoutAdmin() {
 
 // Show authentication modal for specific access level
 function showAuthModal(level) {
+    const requiredPassword = ACCESS_PASSWORDS[level];
+
+    // If no password is required, authenticate immediately
+    if (requiredPassword === "") {
+        authenticateFor(level, "");
+        location.reload();
+        return;
+    }
+
+    // Show password modal if password is required
     const modal = document.createElement('div');
     modal.innerHTML = `
         <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; display: flex; align-items: center; justify-content: center;">
@@ -181,28 +205,10 @@ function goToHome() {
     window.location.href = '/';
 }
 
-// Enhanced protection for borrower users
+// Borrower restrictions disabled (passwords removed)
 function enforceBorrowerRestrictions() {
-    const userRole = getUserRole();
-
-    // If user is authenticated as borrower, prevent access to other pages
-    if (userRole === 'borrower') {
-        const currentPath = window.location.pathname;
-
-        // Borrower can only access borrower_summary.html
-        if (!currentPath.includes('/borrower_summary.html')) {
-            // Clear borrower authentication and redirect
-            sessionStorage.removeItem('borrower_authenticated');
-            sessionStorage.removeItem('borrower_auth_time');
-            sessionStorage.removeItem('user_role');
-
-            // Show message and redirect
-            alert('Access denied. Borrower users can only access the Borrower Summary page.');
-            window.location.href = '/borrower_summary.html';
-            return false;
-        }
-    }
-
+    // No restrictions since passwords are disabled
+    // All users can access all pages freely
     return true;
 }
 

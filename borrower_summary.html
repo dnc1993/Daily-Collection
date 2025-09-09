@@ -26,41 +26,17 @@
             // This function is kept for compatibility
         }
 
-        // Enhanced borrower protection
-        function preventBorrowerNavigation() {
-            // Override window.open to prevent new windows/tabs
-            const originalOpen = window.open;
-            window.open = function(url) {
-                if (url && !url.includes('borrower_summary.html')) {
-                    alert('Access denied. Borrower users can only access the Borrower Summary page.');
-                    return null;
-                }
-                return originalOpen.apply(this, arguments);
-            };
-
-            // Prevent right-click context menu (to block "Open in new tab" etc.)
-            document.addEventListener('contextmenu', function(e) {
-                e.preventDefault();
-                alert('Right-click navigation is disabled for borrower users.');
-                return false;
-            });
-
-            // Monitor for navigation attempts
-            let lastLocation = window.location.href;
-            setInterval(function() {
-                if (window.location.href !== lastLocation && !window.location.href.includes('borrower_summary.html')) {
-                    alert('Access denied. Redirecting to Borrower Summary.');
-                    window.location.href = '/borrower_summary.html';
-                }
-                lastLocation = window.location.href;
-            }, 100);
+        // Borrower navigation (no restrictions since passwords are disabled)
+        function allowFreeNavigation() {
+            // All navigation is now allowed since passwords are disabled
+            console.log('Free navigation enabled - no password restrictions');
         }
 
         // Check authentication and show environment banner
         window.onload = function() {
             showEnvironmentBanner();
             addLogoutButton();
-            preventBorrowerNavigation(); // Add navigation protection
+            allowFreeNavigation(); // Enable free navigation (no restrictions)
         };
     </script>
 <style>
