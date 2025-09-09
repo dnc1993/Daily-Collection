@@ -5,23 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Borrower Loan Summary</title>
     <script>
-        // Borrower Authentication System
-        const BORROWER_PASSWORD = "borrower123"; // Change this to your desired password
+        // Borrower Authentication System - uses shared access control
 
-        // Check if user is authenticated as borrower
+        // Borrower authentication uses shared access control system
         function checkBorrowerAuth() {
-            const isAuthenticated = sessionStorage.getItem('borrower_authenticated');
-            const authTime = sessionStorage.getItem('borrower_auth_time');
-            const currentTime = Date.now();
-
-            // Check if authentication is expired (30 minutes)
-            if (authTime && (currentTime - parseInt(authTime)) > 30 * 60 * 1000) {
-                sessionStorage.removeItem('borrower_authenticated');
-                sessionStorage.removeItem('borrower_auth_time');
-                return false;
-            }
-
-            return isAuthenticated === 'true';
+            return isAuthenticatedFor('borrower');
         }
 
         // Show borrower login form
@@ -77,10 +65,7 @@
 
         // Logout borrower
         function logoutBorrower() {
-            sessionStorage.removeItem('borrower_authenticated');
-            sessionStorage.removeItem('borrower_auth_time');
-            sessionStorage.removeItem('user_role');
-            location.reload();
+            logoutLevel('borrower');
         }
 
         // Check authentication on page load
